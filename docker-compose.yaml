@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  excalidraw:
+    build:
+      context: ./excalidraw
+      args:
+      	- NODE_ENV=production
+    environment:
+      - VITE_APP_BACKEND_V2_GET_URL=https://my_site.com/excalidraw-storage/api/v2/
+      - VITE_APP_BACKEND_V2_POST_URL=https://my_site.com/excalidraw-storage/api/v2/post/
+      - VITE_APP_WS_SERVER_URL=https://my_site.com/excalidraw-collab/
+      - VITE_APP_FIREBASE_CONFIG={}
+      - VITE_APP_HTTP_STORAGE_BACKEND_URL=https://my_site.com/excalidraw-storage/api/v2
+      - VITE_APP_STORAGE_BACKEND=https
+    container_name: excalidraw
+    ports:
+      - "42040:80"
+    restart: on-failure
+    stdin_open: true
+    healthcheck:
+      disable: true
+
+  excalidraw-room:
+    build:
+      context: ./excalidraw-room
+    environment:
+      # Collaboration WebSocket
+      PORT: 3002
+    ports:
+      - "42039:3002"
+
+  excalidraw-storage:
+    build:
+      context: ./excalidraw-storage-backend
+    restart: always
+    environment:
+      - PORT=8081
+      - STORAGE_URI=redis://redis:42041
+    ports:
+      - "42038:8081"
+
+  redis:
+    image: redis
+    ports:
+      - "42041:6379"
